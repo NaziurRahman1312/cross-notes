@@ -10,7 +10,7 @@
     </ContentPage.BindingContext>
 
     <VerticalStackLayout Spacing="10" Margin="5">
-        <WebView x:Name="editorWebView" HeightRequest="500">
+        <WebView x:Name="editorWebView" MaximumHeightRequest="400">
             <WebView.Source>
                 <HtmlWebViewSource Html="{Binding EditorSource}">
                 </HtmlWebViewSource>

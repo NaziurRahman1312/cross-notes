@@ -32,7 +32,14 @@
         <CollectionView.ItemTemplate>
             <DataTemplate>
                 <StackLayout>
-                    <Label Text="{Binding Text}" FontSize="22"/>
+                    <Frame BorderColor="Gray" CornerRadius="5">
+                        <WebView x:Name="PreviewWebView" HeightRequest="120">
+                            <WebView.Source>
+                                <HtmlWebViewSource Html="{Binding PreviewSource}">
+                                </HtmlWebViewSource>
+                            </WebView.Source>
+                        </WebView>
+                    </Frame>
                     <Label Text="{Binding Date}" FontSize="14" TextColor="Silver"/>
                 </StackLayout>
             </DataTemplate>

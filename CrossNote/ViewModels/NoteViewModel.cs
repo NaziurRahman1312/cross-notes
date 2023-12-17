@@ -19,9 +19,14 @@ namespace CrossNote.ViewModels
 
         #region Properties
 
+        public string PreviewSource
+        {
+            get => GetPreviewSource(_note?.Text);
+        }
+
         public string EditorSource
         {
-            get => GetHtmlSource(_note?.Text);
+            get => GetEditorHtmlSource(_note?.Text);
         }
 
         public ICommand SaveCommand { get; private set; }
@@ -84,11 +89,12 @@ namespace CrossNote.ViewModels
 
         private void RefreshProperties()
         {
+            OnPropertyChanged(nameof(PreviewSource));
             OnPropertyChanged(nameof(EditorSource));
             OnPropertyChanged(nameof(Date));
         }
 
-        private string GetHtmlSource(string? param)
+        private string GetEditorHtmlSource(string? prevData)
         {
             return @"<html>
                  <head>
@@ -118,7 +124,7 @@ namespace CrossNote.ViewModels
                     }
                  </style>
                  </head>
-                 <body onload=""initialize()"">
+                 <body onload=""initialize()"" style='height: fit-content;'>
                      <div id='editor' style='border: none; height: fit-content;'>
                      </div>
                  
@@ -127,7 +133,7 @@ namespace CrossNote.ViewModels
                      <script type=""text/javascript"">
                          var quill = null;
 
-                         var prevData = " + (String.IsNullOrWhiteSpace(param) ? @"null" : param) + @";
+                         var prevData = " + (String.IsNullOrWhiteSpace(prevData) ? @"null" : prevData) + @";
                  
                          function initialize() {
                              if (quill === null) {
@@ -152,6 +158,55 @@ namespace CrossNote.ViewModels
                              if(quill !== null){
                                 return encodeURIComponent(JSON.stringify(quill.editor.delta.ops));
                              }else return '';
+                         }
+                     </script>
+                 </body>
+                 </html>";
+        }
+
+        private string GetPreviewSource(string? prevData)
+        {
+            return @"<html>
+                 <head>
+                     <meta name=""viewport"" width=""device-width,"" initial-scale=""1"">
+                     <link href='https://cdn.quilljs.com/1.3.6/quill.snow.css' rel='stylesheet'>
+                 <style>
+                    .body{
+                        overflow-y: hidden !important;
+                    }
+
+                    .ql-editor{
+                        overflow-y: hidden !important;
+                    }
+
+                    .ql-editor > * {
+                        cursor: default;
+                    }
+                 </style>
+                 </head>
+                 <body onload=""initialize()"" style='height: fit-content;'>
+                     <div id='editor' style='border: none; height: 70px;'>
+                     </div>
+                 
+                     <script src='https://cdn.quilljs.com/1.3.6/quill.js'></script>
+                 
+                     <script type=""text/javascript"">
+                         var quill = null;
+
+                         var prevData = " + (String.IsNullOrWhiteSpace(prevData) ? @"null" : prevData) + @";
+                 
+                         function initialize() {
+                             if (quill === null) {
+                                 quill = new Quill('#editor', {
+                                     theme: 'bubble'
+                                 });
+
+                                 quill.enable(false);
+
+                                 if (prevData !== null) {
+                                     quill.setContents(prevData);
+                                 }
+                             }
                          }
                      </script>
                  </body>
