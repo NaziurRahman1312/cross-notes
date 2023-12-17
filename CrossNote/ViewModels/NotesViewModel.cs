@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using CrossNote.Models;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -8,7 +7,7 @@ namespace CrossNote.ViewModels
     internal class NotesViewModel : IQueryAttributable
     {
         #region Properties
-        
+
         public ObservableCollection<ViewModels.NoteViewModel> AllNotes { get; }
         public ICommand NewCommand { get; }
         public ICommand SelectNoteCommand { get; }
@@ -16,7 +15,7 @@ namespace CrossNote.ViewModels
         #endregion
 
         #region Constructors
-        
+
         public NotesViewModel()
         {
             AllNotes = new ObservableCollection<ViewModels.NoteViewModel>(Models.Note.LoadAll().Select(n => new NoteViewModel(n)));
@@ -27,7 +26,7 @@ namespace CrossNote.ViewModels
         #endregion
 
         #region Methods
-        
+
         private async Task NewNoteAsync()
         {
             await Shell.Current.GoToAsync(nameof(Views.NotePage));
@@ -66,8 +65,8 @@ namespace CrossNote.ViewModels
                 else
                     AllNotes.Insert(0, new NoteViewModel(Models.Note.Load(noteId)));
             }
-        } 
-        
+        }
+
         #endregion
     }
 }

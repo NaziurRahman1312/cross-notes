@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Web;
 using System.Windows.Input;
 
 namespace CrossNote.ViewModels
@@ -18,17 +19,9 @@ namespace CrossNote.ViewModels
 
         #region Properties
 
-        public string Text
+        public string EditorSource
         {
-            get => _note.Text;
-            set
-            {
-                if (_note.Text != value)
-                {
-                    _note.Text = value;
-                    OnPropertyChanged();
-                }
-            }
+            get => GetHtmlSource(_note?.Text);
         }
 
         public ICommand SaveCommand { get; private set; }
@@ -41,14 +34,14 @@ namespace CrossNote.ViewModels
         public NoteViewModel()
         {
             _note = new Models.Note();
-            SaveCommand = new AsyncRelayCommand(Save);
+            SaveCommand = new AsyncRelayCommand<WebView>(Save);
             DeleteCommand = new AsyncRelayCommand(Delete);
         }
 
         public NoteViewModel(Models.Note note)
         {
             _note = note;
-            SaveCommand = new AsyncRelayCommand(Save);
+            SaveCommand = new AsyncRelayCommand<WebView>(Save);
             DeleteCommand = new AsyncRelayCommand(Delete);
         }
 
@@ -56,8 +49,13 @@ namespace CrossNote.ViewModels
 
         #region Methods
 
-        private async Task Save()
+        private async Task Save(WebView? editorWebView)
         {
+            if (editorWebView != null)
+            {
+                var result = await editorWebView.EvaluateJavaScriptAsync($"getEditorContent()");
+                _note.Text = HttpUtility.UrlDecode(result);
+            }
             _note.Date = DateTime.Now;
             _note.Save();
             await Shell.Current.GoToAsync($"..?saved={_note.Filename}");
@@ -86,8 +84,78 @@ namespace CrossNote.ViewModels
 
         private void RefreshProperties()
         {
-            OnPropertyChanged(nameof(Text));
+            OnPropertyChanged(nameof(EditorSource));
             OnPropertyChanged(nameof(Date));
+        }
+
+        private string GetHtmlSource(string? param)
+        {
+            return @"<html>
+                 <head>
+                     <meta name=""viewport"" width=""device-width,"" initial-scale=""1"">
+                     <link href='https://cdn.quilljs.com/1.3.6/quill.snow.css' rel='stylesheet'>
+                 
+                 <style>
+                    div.sticky {
+                      position: -webkit-sticky;
+                      position: sticky;
+                      top: 0;
+                      padding: 5px;
+                      background-color: black;
+                      z-index: 1;
+                    }
+                    
+                    .ql-snow .ql-stroke{
+                        stroke: white;
+                    }
+                    
+                    .ql-snow .ql-picker{
+                        color: white;
+                    }
+                    
+                    .ql-snow .ql-picker-options{
+                        background-color: black;
+                    }
+                 </style>
+                 </head>
+                 <body onload=""initialize()"">
+                     <div id='editor' style='border: none; height: fit-content;'>
+                     </div>
+                 
+                     <script src='https://cdn.quilljs.com/1.3.6/quill.js'></script>
+                 
+                     <script type=""text/javascript"">
+                         var quill = null;
+
+                         var prevData = " + (String.IsNullOrWhiteSpace(param) ? @"null" : param) + @";
+                 
+                         function initialize() {
+                             if (quill === null) {
+                                 // Resolve reload issue
+                                 document.getElementsByClassName('ql-toolbar ql-snow')[0]?.remove();
+
+                                 //document.getElementsByClassName('ql-toolbar ql-snow')[0].classList.add('sticky');
+
+                                 quill = new Quill('#editor', {
+                                     theme: 'snow'
+                                 });
+
+                                 document.getElementsByClassName('ql-toolbar ql-snow')[0].classList.add('sticky');
+
+                                 if (prevData !== null) {
+                                     quill.setContents(prevData);
+                                 }
+                             }
+                         }
+
+                         function getEditorContent(){
+                             if(quill !== null){
+                                return encodeURIComponent(JSON.stringify(quill.editor.delta.ops));
+                             }else return '';
+                         }
+                     </script>
+                 </body>
+                 </html>";
         }
 
         #endregion
