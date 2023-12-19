@@ -4,6 +4,7 @@ Cross Note represents a .NET MAUI sample app showcasing a robust text editor fea
 
 In place of Quill.JS, one can use TinyMCE, and CKEditor to add some more advanced editor features.
 
+![Android Demo](./Showcases/Demo_IOS.png)
 ![Android Demo](./Showcases/Demo_Android.png)
 ![Windows Demo](./Showcases/Demo_Win.png)
 
